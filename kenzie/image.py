@@ -38,10 +38,10 @@ def downloading(file_name):
 
 def zipping(extension, ratio):
     allowed_extensions = ["png", "jpg", "gif"]
-    dir_path = f"../images/{str(extension)}"
+    dir_path = f"./images/{str(extension)}"
     
     if extension in allowed_extensions:
         zip_files = os.popen(f"zip photos -r {dir_path}")
-        return send_from_directory("/tmp", path="photos.zip", as_attachment=True), 200
+        return send_from_directory("../", path="photos.zip", as_attachment=True), 200
     else:
         return {'msg': "Imagens não encontradas"}, 404
