@@ -49,7 +49,7 @@ def get_files(extension):
                     if img_name != ".DS_Store":
                         the_imgs.append({'name': img_name})
             else:
-                return {'msg': "Lista vazia. Faça upload."}, 400
+                return {'msg': "Lista vazia. Faça upload"}, 400
 
     if extension:
         return search_files(the_imgs, extension)
