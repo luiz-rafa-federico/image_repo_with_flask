@@ -7,7 +7,7 @@ def writing(file_name):
         f.write("\n")
 
 
-def uploading(img, dir, extension):
+def uploading(img, dir, extension, names):
     with open("img_files.txt", "r") as f:
         for line in f:
             if img.filename.lower() in line:
@@ -15,7 +15,7 @@ def uploading(img, dir, extension):
 
     img.save(f"./{dir}/{extension}/{img.filename.lower()}")
     writing(img.filename.lower())
-    return {'msg': f"Upload concluído com sucesso"}, 201
+    return {'msg': f"Upload de {names} concluído com sucesso"}, 201
     
 
 def search_files(images, extension):

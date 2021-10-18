@@ -15,6 +15,7 @@ def upload():
     file_dir = os.environ.get("FILES_DIRECTORY")
     extensions = os.environ.get("ALLOWED_EXTENSIONS").split()
     output = ""
+    img_names = []
 
     if os.path.isdir("./images") == False:
         os.system(f"mkdir ./{file_dir}")
@@ -27,11 +28,12 @@ def upload():
     for img in img_list:
         if img and img.filename != "":
             file_extension = img.filename[-3:]
+            img_names.append(img.filename)
 
             if file_extension not in extensions:
                 output = {'msg': "O formato da imagem é inválido"}, 415
             else:
-                output = uploading(img, file_dir, file_extension)
+                output = uploading(img, file_dir, file_extension, img_names)
 
     return output
 
