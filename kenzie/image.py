@@ -8,15 +8,13 @@ def writing(file_name):
 
 
 def uploading(img, dir, extension):
-    
     with open("img_files.txt", "r") as f:
         for line in f:
             if img.filename.lower() in line:
-                return {'msg': "O nome do arquivo já existe."}, 409
+                return {'msg': "O nome do arquivo já existe"}, 409
 
     img.save(f"./{dir}/{extension}/{img.filename.lower()}")
     writing(img.filename.lower())
-    
     return {'msg': f"Upload concluído com sucesso"}, 201
     
 
@@ -33,12 +31,15 @@ def downloading(file_name):
     if file_name[-3:].lower() in allowed_extensions:
         return send_from_directory(f"../images/{file_name[-3:]}", path=f"{file_name}", as_attachment=True), 200
     else:
-        return {'msg': "Imagem não encontrada."}, 404
+        return {'msg': "Imagem não encontrada"}, 404
 
 
 def zipping(extension, ratio):
     allowed_extensions = ["png", "jpg", "gif"]
     dir_path = f"./images/{str(extension)}"
+
+    if not os.listdir(dir_path):
+        return {'msg': "A pasta está vazia"}, 404
     
     if extension in allowed_extensions:
         zip_files = os.popen(f"zip photos -r {dir_path}")
