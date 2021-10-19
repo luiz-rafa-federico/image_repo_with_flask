@@ -1,48 +1,67 @@
 import os
+from typing import Text
+from uuid import uuid4
+from http import HTTPStatus
 from flask import jsonify, send_from_directory
 
-def writing(file_name):
-    with open("img_files.txt", "a") as f:
-        f.write(file_name)
-        f.write("\n")
+file_dir = os.environ.get("FILES_DIRECTORY")
+extensions = os.environ.get("ALLOWED_EXTENSIONS").split()
 
+def uploading(images):
+    output = ""
+    img_names = []
 
-def uploading(img, dir, extension, names):
-    with open("img_files.txt", "r") as f:
-        for line in f:
-            if img.filename.lower() in line:
-                return {'msg': "O nome do arquivo já existe"}, 409
+    if os.path.isdir(f"./{file_dir}") == False:
+        os.system(f"mkdir ./{file_dir}")
+        for ext in extensions:
+            os.system(f"mkdir ./{file_dir}/{ext}")
 
-    img.save(f"./{dir}/{extension}/{img.filename.lower()}")
-    writing(img.filename.lower())
-    return {'msg': f"Upload de {names} concluído com sucesso"}, 201
+    for img in images:
+        if img and img.filename != "":
+            file_extension = img.filename[-3:]
+            img_names.append(img.filename)
+
+            if file_extension not in extensions:
+                output = {'msg': "O formato da imagem é inválido"}, HTTPStatus.UNSUPPORTED_MEDIA_TYPE
+            elif img.filename.lower() in os.listdir(f"./{file_dir}/{file_extension}"):
+                output= {'msg': "O nome do arquivo já existe"}, HTTPStatus.CONFLICT
+            else:
+                img.save(f"./{file_dir}/{file_extension}/{img.filename.lower()}")
+                output = {'msg': f"Upload de {img_names} concluído com sucesso"}, HTTPStatus.CREATED
+    return output
     
 
 def search_files(images, extension):
     filtered = [pic for pic in images if extension.lower() in pic['name']]
     if filtered:
-        return jsonify(filtered), 200
+        return jsonify(filtered), HTTPStatus.OK
     else:
-        return {'msg': "Arquivos não encontrados"}, 400
+        return {'msg': "Arquivos não encontrados"}, HTTPStatus.NOT_FOUND
 
 
 def downloading(file_name):
-    allowed_extensions = ["png", "jpg", "gif"]
-    if file_name[-3:].lower() in allowed_extensions:
-        return send_from_directory(f"../images/{file_name[-3:]}", path=f"{file_name}", as_attachment=True), 200
+    if file_name[-3:].lower() in extensions:
+        return send_from_directory(f"../images/{file_name[-3:]}", path=f"{file_name}", as_attachment=True), HTTPStatus.OK
     else:
-        return {'msg': "Imagem não encontrada"}, 404
+        return {'msg': "Imagem não encontrada"}, HTTPStatus.NOT_FOUND
+
+
+def generate_random_name(l):
+    import string, random
+    letters = string.ascii_letters
+    name = "".join(random.choice(letters) for _ in range(l))
+    return name
 
 
 def zipping(extension, ratio):
-    allowed_extensions = ["png", "jpg", "gif"]
     dir_path = f"./images/{str(extension)}"
 
     if not os.listdir(dir_path):
-        return {'msg': "A pasta está vazia"}, 404
+        return {'msg': "A pasta está vazia"}, HTTPStatus.NOT_FOUND
     
-    if extension in allowed_extensions:
-        zip_files = os.popen(f"zip photos -r {dir_path}")
-        return send_from_directory("../", path="photos.zip", as_attachment=True), 200
+    if extension.lower() in extensions:
+        random_name = generate_random_name(4)
+        os.system(f"zip -r -{ratio} /tmp/{str(random_name.lower())} {dir_path}")
+        return send_from_directory("/tmp", path=f"{str(random_name.lower())}.zip", as_attachment=True), HTTPStatus.OK
     else:
-        return {'msg': "Imagens não encontradas"}, 404
+        return {'msg': "Imagens não encontradas"}, HTTPStatus.NOT_FOUND
