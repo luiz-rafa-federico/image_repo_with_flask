@@ -72,7 +72,7 @@ def generate_random_name(l):
 def zipping(request):
     extension = request.get("file_extension")
     ratio = request.get("compression_ratio")
-    dir_path = f"./images/{str(extension)}"
+    dir_path = f"./{file_dir}/{str(extension)}"
 
     if not os.listdir(dir_path):
         return {'msg': "A pasta está vazia"}, HTTPStatus.NOT_FOUND
