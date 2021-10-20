@@ -31,12 +31,28 @@ def uploading(images):
     return output
     
 
-def search_files(images, extension):
-    filtered = [pic for pic in images if extension.lower() in pic['name']]
-    if filtered:
-        return jsonify(filtered), HTTPStatus.OK
+def search_files(extension):
+    the_imgs = []
+    output = ""
+    
+    for ext in extensions:
+        for _, _, filenames in os.walk(f"./{file_dir}/{str(ext)}"):
+            if filenames != []:
+                for img_name in filenames:
+                    the_imgs.append({'name': img_name})
+            else:
+                output = {'msg': "Lista vazia. Faça upload"}, HTTPStatus.NOT_FOUND
+
+    if not extension:
+        output = jsonify(the_imgs), HTTPStatus.OK
     else:
-        return {'msg': "Arquivos não encontrados"}, HTTPStatus.NOT_FOUND
+        filtered = [pic for pic in the_imgs if extension.lower() in pic['name']]
+        if filtered:
+            output = jsonify(filtered), HTTPStatus.OK
+        else:
+            output = {'msg': "Arquivos não encontrados"}, HTTPStatus.NOT_FOUND
+    
+    return output
 
 
 def downloading(file_name):
@@ -53,7 +69,9 @@ def generate_random_name(l):
     return name
 
 
-def zipping(extension, ratio):
+def zipping(request):
+    extension = request.get("file_extension")
+    ratio = request.get("compression_ratio")
     dir_path = f"./images/{str(extension)}"
 
     if not os.listdir(dir_path):
